@@ -2,6 +2,8 @@ import pandas as pd
 import streamlit as st
 import os,time
 from datasets import Dataset
+from torchtext.legacy.data import Field, TabularDataset
+import torch
 
 def sayhi():
 	print("hello")
@@ -16,18 +18,38 @@ def load_data(url):
 		else:
 			df = pd.read_json(url,encoding='utf-8',lines=True)
 			df = df[usecol][:100]
-		return df
+		return df	
 
-def get_dataset_hf(url,split):
+def get_dataset_torchtext(url,split):
 	df = load_data(url)
 	STATS = {}
 	STATS["num_labels"] = len(df["output"].unique())
-	dataset = Dataset.from_pandas(df)
+	STATS["total_rows"] = len(df)
+	del df
+
+	label_field = Field(sequential=False, use_vocab=False, batch_first=True, dtype=torch.float)
+	text_field = Field(tokenize='spacy',tokenizer_language = 'en_core_web_sm', lower=True, include_lengths=True, batch_first=True)
+	# fields = [('output', label_field), ('input', text_field)]
+	fields = {'input':("input",text_field),
+			'output':("output",label_field)}
+	# TabularDataset
+	train_data = TabularDataset(path=url,format='JSON', fields=fields)#, skip_header=True)
+
+	train_data, valid_data = train_data.split(split_ratio=0.7, random_state = random.seed(13))
+	STATS["train_rows"] = len(train_data)
+	STATS["test_rows"] = len(valid_data)
+	return STATS,train_data,text_field,valid_data
+
+def get_dataset_hf(url,split):
+	dataset = load_data(url)
+	STATS = {}
+	STATS["total_rows"] = len(dataset)
+	STATS["num_labels"] = len(dataset["output"].unique())
+	dataset = Dataset.from_pandas(dataset)
 	st.success("Data loaded succesfully.")
 	dataset = dataset.train_test_split(train_size=split/100,seed=13)
 	STATS["train_rows"] = dataset["train"].num_rows
-	STATS["test_rows"] = dataset["test"].num_rows
-	STATS["total_rows"] = len(df)
+	STATS["test_rows"] = dataset["test"].num_rows	
 	return STATS,dataset
 
 def looper():

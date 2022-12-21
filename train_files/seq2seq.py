@@ -1,7 +1,7 @@
 import streamlit as st
 import sys
 sys.path.append("..")
-from automldash import utils
+from NoCodeMLdash import utils
 
 def lstm_train(url):
 	st.write("Train a LSTM model for seq2sqeq")

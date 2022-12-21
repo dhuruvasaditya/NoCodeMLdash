@@ -9,7 +9,7 @@ STATS={}
 #from main
 split=80
 num_epochs = 1
-STATS,dataset = get_dataset(r"E:\Python\Personal Project\automldash\data\sequence\Sarcasm_train.json")
+STATS,dataset = get_dataset(r"E:\Python\Personal Project\NoCodeMLdash\data\sequence\Sarcasm_train.json")
 model_name = "distilbert-base-uncased"
 
 

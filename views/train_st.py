@@ -19,13 +19,14 @@ def train():
 			model = st.selectbox(
 				"Model architecture",
 				("Bi-LSTM", "GPT", "T5","BART"))
+				
 		### second level options
 		if method=="Seq2seq":
 				st.write("CSV file headers should be 'input' and 'output' for the seq2seq task")
 		else:
 			st.write("CSV file headers should be 'input' and 'label' for the classification task\
 				 (label can be a string(negative/positive) or integer(1/0)")
-		url = st.text_input("Enter URL of dataset in CSV form",r"E:\Python\Personal Project\automldash\data\sequence\seq_sarcasm_train.json")
+		url = st.text_input("Enter URL of dataset in CSV or JSON form",r"D:\TSApy\NoCodeMLdash\data\sequence\seq_sarcasm_train.json")
 		split = st.number_input("Percentage of data for training (rest will be taken as test)",
 		 min_value=60, max_value=90, value=70, step=10)
 		submitted = st.button("Submit")
@@ -38,11 +39,10 @@ def train():
 				seq2seq.lstm_train(url,split)
 			else:
 				STATS,dataset = utils.get_dataset_hf(url,split)
-				seq2seq.transformers_train(url,split,model)
+				seq2seq.transformers_train(STATS,dataset,model)
 		else:
 			if model == "Bi-LSTM":
-				classifier.lstm_train(url,split)
+				classifier.lstm_train(*utils.get_dataset_torchtext(url,split))
 			else:
-				STATS,dataset = utils.get_dataset_hf(url,split)
-				classifier.transformers_train(STATS,dataset,model)
+				classifier.transformers_train(*utils.get_dataset_hf(url,split),model)
 	# return
